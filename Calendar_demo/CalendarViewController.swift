@@ -15,9 +15,10 @@ class CalendarViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = UIColor.white
+        self.view.backgroundColor = UIColor.groupTableViewBackground
         // Do any additional setup after loading the view.
         calendarView.frame.size = CGSize.init(width: self.view.bounds.size.width, height: 300)
+        calendarView.backgroundColor = UIColor.white
         self.view.addSubview(calendarView)
         self.automaticallyAdjustsScrollViewInsets = false
         

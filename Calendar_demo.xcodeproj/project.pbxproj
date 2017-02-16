@@ -18,6 +18,7 @@
 		D5775A711E5441F500F69327 /* CalendarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5775A701E5441F500F69327 /* CalendarViewController.swift */; };
 		D5775A741E54446E00F69327 /* CACalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5775A731E54446E00F69327 /* CACalendar.swift */; };
 		D5775A761E54A00400F69327 /* CACalendarLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5775A751E54A00400F69327 /* CACalendarLayout.swift */; };
+		D5B903A91E557B3900D05287 /* CACalendarCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5B903A81E557B3900D05287 /* CACalendarCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,7 @@
 		D5775A701E5441F500F69327 /* CalendarViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalendarViewController.swift; sourceTree = "<group>"; };
 		D5775A731E54446E00F69327 /* CACalendar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CACalendar.swift; sourceTree = "<group>"; };
 		D5775A751E54A00400F69327 /* CACalendarLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CACalendarLayout.swift; sourceTree = "<group>"; };
+		D5B903A81E557B3900D05287 /* CACalendarCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CACalendarCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -162,6 +164,7 @@
 			children = (
 				D5775A731E54446E00F69327 /* CACalendar.swift */,
 				D5775A751E54A00400F69327 /* CACalendarLayout.swift */,
+				D5B903A81E557B3900D05287 /* CACalendarCell.swift */,
 			);
 			path = CACalendar;
 			sourceTree = "<group>";
@@ -356,6 +359,7 @@
 				D5775A741E54446E00F69327 /* CACalendar.swift in Sources */,
 				D5775A451E54410900F69327 /* ViewController.swift in Sources */,
 				D5775A431E54410900F69327 /* AppDelegate.swift in Sources */,
+				D5B903A91E557B3900D05287 /* CACalendarCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
