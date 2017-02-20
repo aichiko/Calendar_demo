@@ -17,7 +17,8 @@ class CalendarViewController: UIViewController {
         super.viewDidLoad()
         self.view.backgroundColor = UIColor.groupTableViewBackground
         // Do any additional setup after loading the view.
-        calendarView.frame.size = CGSize.init(width: self.view.bounds.size.width, height: 300)
+        
+        calendarView.frame.size = CGSize.init(width: self.view.bounds.size.width, height: 330)
         calendarView.backgroundColor = UIColor.white
         self.view.addSubview(calendarView)
         self.automaticallyAdjustsScrollViewInsets = false
@@ -25,7 +26,7 @@ class CalendarViewController: UIViewController {
         calendarView.snp.makeConstraints { (make) in
             make.center.equalTo(self.view)
             make.width.equalTo(self.view)
-            make.height.equalTo(300)
+            make.height.equalTo(330)
         }
     }
 

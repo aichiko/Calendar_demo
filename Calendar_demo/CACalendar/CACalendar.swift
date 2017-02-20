@@ -10,15 +10,27 @@ import UIKit
 
 let cellIdentifier = "cell"
 
-class CACalendar: UIView, UIScrollViewDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+class CACalendar: UIView, UIScrollViewDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CalendarCalculator {
 
+    let headView = CACalendarWeekdayView()
+    
     var contentView = UICollectionView(frame: CGRect.zero, collectionViewLayout: UICollectionViewLayout.init())
     var months: Array = [Any]()
     
-    let formatter = DateFormatter.init()
-    let gregorian = Calendar.init(identifier: .gregorian)//公历
-    let components = DateComponents.init()
+    internal var components: DateComponents = DateComponents.init()
     
+    
+    internal var gregorian: Calendar {
+        return Calendar.init(identifier: .gregorian)//公历
+    }
+    
+    internal var formatter: DateFormatter {
+        let formatter = DateFormatter.init()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }
+    
+    var selectedIndexPath: IndexPath?
     
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         return UIEdgeInsetsMake(0, 0, 0, 0)
@@ -42,15 +54,56 @@ class CACalendar: UIView, UIScrollViewDelegate, UICollectionViewDataSource, UICo
     
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as! CACalendarCell
-        cell.backgroundColor = UIColor.orange
-        cell.title = String(indexPath.item)
-        cell.eventNum = indexPath.item%3 - 1
+//        cell.backgroundColor = UIColor.orange
+        cell.cellDate(indexPath)
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-         print(indexPath)
+        print(indexPath)
+        var cell = collectionView.cellForItem(at: indexPath) as! CACalendarCell
+        //print(cell.cellPosition)
+        if cell.cellPosition == .current {
+            cell = collectionView.cellForItem(at: indexPath) as! CACalendarCell
+            cell.isSelected = true
+            cell.cellPerformSelected()
+            selectedIndexPath = indexPath
+        }else {
+            let cellIndexPath = cell.realIndexPath(indexPath, cell.cellPosition!)
+            collectionView.selectItem(at: IndexPath.init(item: 0, section: (cellIndexPath?.section)!), animated: true, scrollPosition: .left)
+            if (cellIndexPath != nil) {
+                let cell = contentView.cellForItem(at: cellIndexPath!) as? CACalendarCell
+                cell?.isSelected = true
+                cell?.cellPerformSelected()
+                selectedIndexPath = cellIndexPath
+            }
+        }
+        for item in 0..<42 {
+            let indexPath: IndexPath = IndexPath.init(item: item, section: indexPath.section)
+            if  indexPath != selectedIndexPath! {
+                let cell = collectionView.cellForItem(at: indexPath)
+                cell?.isSelected = false
+                (cell as! CACalendarCell).shapeLayerUpdate()
+            }
+        }
     }
+    
+    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        let cell = collectionView.cellForItem(at: indexPath) as? CACalendarCell
+        cell?.isSelected = false
+        cell?.shapeLayerUpdate()
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        if selectedIndexPath != nil && indexPath == selectedIndexPath!  {
+            cell.isSelected = true
+            (cell as! CACalendarCell).cellPerformSelected()
+        }else {
+            cell.isSelected = false
+            (cell as! CACalendarCell).shapeLayerUpdate()
+        }
+    }
+    
     
     @available(iOS 2.0, *)
     
@@ -79,26 +132,34 @@ class CACalendar: UIView, UIScrollViewDelegate, UICollectionViewDataSource, UICo
     
     private func configCollectionView() {
         self.addSubview(contentView)
+        self.addSubview(headView)
         
+        headView.snp.makeConstraints { (make) in
+            make.top.left.right.equalTo(0)
+            make.height.equalTo(30)
+            make.width.equalToSuperview()
+        }
         contentView.snp.makeConstraints { (make) in
-            make.edges.equalTo(self)
+            make.left.right.bottom.equalToSuperview()
+            make.top.equalTo(30)
         }
         loadView(rect: self.bounds)
     }
     
     override func draw(_ rect: CGRect) {
         // Drawing code
+        scrollCurrentDate()
     }
 }
 
 extension CACalendar {
     func loadView(rect: CGRect) {
         let layout = CACalendarLayout()
-        contentView.collectionViewLayout = UICollectionViewFlowLayout()
+        contentView.collectionViewLayout = layout
         contentView.isPagingEnabled = true
         contentView.showsVerticalScrollIndicator = false
         contentView.showsHorizontalScrollIndicator = false
-        contentView.allowsMultipleSelection = true
+        contentView.allowsMultipleSelection = false
         contentView.clipsToBounds = true
         contentView.delegate = self
         contentView.dataSource = self
@@ -119,5 +180,17 @@ extension CACalendar {
         
         let months = gregorian.dateComponents([.month], from: minimumDate!, to: maximumDate!).month!+1
         return months
+    }
+    
+    func scrollCurrentDate() {
+        var minimumDate = formatter.date(from: "1970-01-01")
+        //加入当前时区
+        let zone = TimeZone.current
+        let interval = zone.secondsFromGMT(for: Date())
+        minimumDate?.addTimeInterval(TimeInterval(interval))
+        
+        let currentDate = Date().addingTimeInterval(TimeInterval(interval))
+        let monthCount = gregorian.dateComponents([.month], from: minimumDate!, to: currentDate).month
+        contentView.setContentOffset(CGPoint.init(x: CGFloat(monthCount!)*self.bounds.width, y: 0), animated: false)
     }
 }

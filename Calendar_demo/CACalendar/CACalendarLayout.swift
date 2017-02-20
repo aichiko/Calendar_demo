@@ -12,9 +12,12 @@ let columnCount: Int = 7
 let minSpace = CGFloat(10)//cell之间最小的间距
 var cellWidth: CGFloat = 40
 //还需要计算不同高度的时候cell之间的间隙
-let cellInsets = UIEdgeInsetsMake(5, 5, 5, 5)
+let cellInsets = UIEdgeInsetsMake(5, 0, 5, 0)
 
 class CACalendarLayout: UICollectionViewLayout {
+    
+    var contentSize: CGSize?
+    var cellSize: CGSize = CGSize.zero
     
     var attributesArray = [UICollectionViewLayoutAttributes]()
     
@@ -31,32 +34,70 @@ class CACalendarLayout: UICollectionViewLayout {
     override func prepare() {
         attributesArray.removeAll()
         
-        self.collectionView?.contentOffset = CGPoint(x: (self.collectionView?.bounds.width)!, y: 0)
-        let rowsCount = self.collectionView?.numberOfItems(inSection: 0)
-        for item in 0 ..< rowsCount! {
-            let indexPath = IndexPath.init(item: item, section: 0)
-            let attributes = layoutAttributesForItem(at: indexPath)
-            attributesArray.append(attributes!)
-        }
+        contentSize = CGSize(width: (self.collectionView?.bounds.width)!*CGFloat((self.collectionView?.numberOfSections)!), height: (self.collectionView?.bounds.height)!)
+        cellSize = estimatedItemSize()
         
         super.prepare()
     }
     
     override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
+        
+        if !rect.intersects(CGRect.init(x: 0, y: 0, width: (contentSize?.width)!, height: (contentSize?.height)!)) {return nil}
+        //重叠的大小
+        let intersectsRect = rect.intersection(CGRect.init(x: 0, y: 0, width: (contentSize?.width)!, height: (contentSize?.height)!))
+        attributesArray.removeAll()
+        let wholeSections = Int(intersectsRect.width/(self.collectionView?.bounds.width)!)
+        var numberOfColumns = wholeSections*7//intersectsRect 中包含的纵列的总数
+        let numberOfRows = 6//每一个纵列有6个
+        let startSection = Int(intersectsRect.origin.x/(self.collectionView?.bounds.width)!)
+        
+        let leftColumn = (intersectsRect.minX).truncatingRemainder(dividingBy: ((self.collectionView?.bounds.width)!))
+        let leftCount = leftColumn/(cellSize.width+cellInsets.left+cellInsets.right)
+        
+        let startColumn = startSection*7 + Int(floor(leftCount))
+        
+        let rightColumn = intersectsRect.maxX.truncatingRemainder(dividingBy: ((self.collectionView?.bounds.width)!))
+        let rightCount = rightColumn/(cellSize.width+cellInsets.left+cellInsets.right)
+        
+        numberOfColumns += (7-Int(floor(leftCount)));
+        numberOfColumns += Int(ceil(rightCount));
+        
+        if rightCount > leftCount {
+            numberOfColumns -= 7
+        }
+        let endColumn = startColumn + numberOfColumns - 1;
+        
+        for column in startColumn...endColumn {
+            for row in 0 ..< numberOfRows {
+                let section = column / 7;
+                let item = (column % 7) + (row * 7);
+                let indexPath = IndexPath.init(item: item, section: section)
+                let attributes = layoutAttributesForItem(at: indexPath)
+                attributesArray.append(attributes!)
+            }
+        }
         return attributesArray
     }
     
     override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
         let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
         let item = indexPath.item
-        let orgin_x = CGFloat(item/42) * (self.collectionView?.bounds.width)!
-        let orgin_y = CGFloat(item/42) * (self.collectionView?.bounds.height)!
-        let cellSize = estimatedItemSize()
-        print("origin_X === \(orgin_x)")
-        let point_x = orgin_x + cellInsets.left + (cellSize.width+cellInsets.left+cellInsets.right) * CGFloat(item%columnCount)
-        let point_y = cellInsets.top + (cellSize.height+cellInsets.top+cellInsets.bottom) * CGFloat(item/columnCount) - orgin_y
+        let section = CGFloat(indexPath.section)
+        let width = (self.collectionView?.bounds.width)!
+        let point_x = width*section + cellInsets.left + (cellSize.width+cellInsets.left+cellInsets.right) * CGFloat(item%columnCount)
+        let point_y = cellInsets.top + (cellSize.height+cellInsets.top+cellInsets.bottom) * CGFloat(item/columnCount)
         attributes.frame = CGRect(x: point_x, y: point_y, width: cellSize.width, height: cellSize.height)
         return attributes
+    }
+    
+    
+    override func layoutAttributesForSupplementaryView(ofKind elementKind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
+        if elementKind == UICollectionElementKindSectionHeader {
+            let attributes = UICollectionViewLayoutAttributes.init(forSupplementaryViewOfKind: UICollectionElementKindSectionHeader, with: indexPath)
+            attributes.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+            return attributes
+        }
+        return nil
     }
     
     override func layoutAttributesForDecorationView(ofKind elementKind: String, at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
@@ -77,8 +118,4 @@ extension UICollectionViewLayout {
         return CGSize(width: width, height: height)
     }
     
-    //算出所有的item的X 坐标
-    public func lefts(_ indexPath: IndexPath) -> [CGFloat] {
-        return []
-    }
 }
