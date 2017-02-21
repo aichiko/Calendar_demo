@@ -9,7 +9,6 @@
 import UIKit
 
 enum MonthPosition {
-    
     case previous;
     case current;
     case next;

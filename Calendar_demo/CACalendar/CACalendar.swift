@@ -12,10 +12,12 @@ let cellIdentifier = "cell"
 
 class CACalendar: UIView, UIScrollViewDelegate, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, CalendarCalculator {
 
+    var headLabel = UILabel()
+    
     let headView = CACalendarWeekdayView()
     
     var contentView = UICollectionView(frame: CGRect.zero, collectionViewLayout: UICollectionViewLayout.init())
-    var months: Array = [Any]()
+    //var months: Array = [Any]()
     
     internal var components: DateComponents = DateComponents.init()
     
@@ -77,6 +79,7 @@ class CACalendar: UIView, UIScrollViewDelegate, UICollectionViewDataSource, UICo
                 cell?.cellPerformSelected()
                 selectedIndexPath = cellIndexPath
             }
+            headLabel.text = currentDate((cellIndexPath?.section)!)
         }
         for item in 0..<42 {
             let indexPath: IndexPath = IndexPath.init(item: item, section: indexPath.section)
@@ -114,8 +117,7 @@ class CACalendar: UIView, UIScrollViewDelegate, UICollectionViewDataSource, UICo
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         print("滑动结束！！！")
         let index = Int(scrollView.contentOffset.x/scrollView.bounds.width)
-        months = [index-1, index, index+1]
-        //scrollView.setContentOffset(CGPoint.init(x: scrollView.bounds.width, y: 0), animated: false)
+        headLabel.text = currentDate(index)
     }
     
     override init(frame: CGRect) {
@@ -135,14 +137,24 @@ class CACalendar: UIView, UIScrollViewDelegate, UICollectionViewDataSource, UICo
         self.addSubview(headView)
         
         headView.snp.makeConstraints { (make) in
-            make.top.left.right.equalTo(0)
+            make.top.equalTo(30)
+            make.left.right.equalTo(0)
             make.height.equalTo(30)
             make.width.equalToSuperview()
         }
         contentView.snp.makeConstraints { (make) in
             make.left.right.bottom.equalToSuperview()
-            make.top.equalTo(30)
+            make.top.equalTo(60)
         }
+        self.addSubview(headLabel)
+        headLabel.textAlignment = .center
+        headLabel.font = UIFont.systemFont(ofSize: 18)
+        headLabel.snp.makeConstraints { (make) in
+            make.centerX.equalToSuperview()
+            make.bottom.equalTo(headView.snp.top).offset(0)
+        }
+        headLabel.text = currentDate(-1)
+        
         loadView(rect: self.bounds)
     }
     
@@ -180,6 +192,24 @@ extension CACalendar {
         
         let months = gregorian.dateComponents([.month], from: minimumDate!, to: maximumDate!).month!+1
         return months
+    }
+    
+    
+    func currentDate(_ section: Int) -> String? {
+        var minimumDate = formatter.date(from: "1970-01-01")
+        //加入当前时区
+        let zone = TimeZone.current
+        let interval = zone.secondsFromGMT(for: Date())
+        minimumDate?.addTimeInterval(TimeInterval(interval))
+        if section == -1 {
+            //返回当前的时间 月份
+            let currentDate = Date().addingTimeInterval(TimeInterval(interval))
+            
+            return currentDate.description.substring(to: "1970-01".endIndex)
+        }else {
+            let sectionDate = gregorian.date(byAdding: .month, value: section, to: minimumDate!)
+            return sectionDate?.description.substring(to: "1970-01".endIndex)
+        }
     }
     
     func scrollCurrentDate() {
